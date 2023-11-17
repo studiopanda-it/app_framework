@@ -1,0 +1,17 @@
+{
+	"name": "studiopanda/app_framework",
+	"homepage": "https://gitlab.com/studiopanda/template/app-framework",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+	  {
+			"name": "Studio Panda",
+			"email": "hello@studiopanda.it",
+			"homepage": "https://studiopanda.it"
+		}
+	],
+	"require": {
+		"php": "^7||^8",
+		"twig/twig": "^3.1"
+	}
+}
