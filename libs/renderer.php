@@ -8,14 +8,14 @@ if(!function_exists("render_twig")) {
 		static $twig = null;
 		if($twig === null) {
 			$twig = new \Twig\Environment(new \Twig\Loader\FilesystemLoader(VIEWS_PATH));
-			foreach(glob(__DIR__."/renderer/*.function.php") as $function) {
+			foreach(glob(ROOT."libs/renderer/*.function.php") as $function) {
 				$twig->addFunction(new \Twig\TwigFunction(basename($function, ".function.php"), require($function)));
 			}
-			foreach(glob(__DIR__."/renderer/*.filter.php") as $filter) {
+			foreach(glob(ROOT."libs/renderer/*.filter.php") as $filter) {
 				$twig->addFilter(new \Twig\TwigFilter(basename($filter, ".filter.php"), require($filter)));
 			}
 		}
-		$constants = array_merge(get_defined_constants(true)["user"], ["_GET" => $_GET, "_POST" => $_POST, "_FILES" => $_FILES, "_COOKIE" => $_COOKIE, "_SESSION" => $_SESSION, "_SERVER" => $_SERVER]);
+		$constants = array_merge(get_defined_constants(true)["user"], ["_GET" => $_GET, "_POST" => $_POST, "_FILES" => $_FILES, "_COOKIE" => $_COOKIE, "_SESSION" => $_SESSION ?? [], "_SERVER" => $_SERVER]);
 		if(file_exists(VIEWS_PATH."$view.twig")) {
 			return $twig->render("$view.twig", array_merge($constants, $data));
 		} else {
