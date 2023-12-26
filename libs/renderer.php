@@ -1,18 +1,16 @@
 <?php
-if(!defined("VIEWS_PATH")) {
-	define("VIEWS_PATH", ROOT."views/");
-}
-
 if(!function_exists("render_twig")) {
 	function render_twig($view, $data = [], $main = true) {
 		static $twig = null;
 		if($twig === null) {
 			$twig = new \Twig\Environment(new \Twig\Loader\FilesystemLoader(VIEWS_PATH));
-			foreach(glob(__DIR__."/renderer/*.function.php") as $function) {
-				$twig->addFunction(new \Twig\TwigFunction(basename($function, ".function.php"), require($function)));
-			}
-			foreach(glob(__DIR__."/renderer/*.filter.php") as $filter) {
-				$twig->addFilter(new \Twig\TwigFilter(basename($filter, ".filter.php"), require($filter)));
+			foreach(glob(ROOT."libs/renderer/*.php") as $function) {
+				$fn = require($function);
+				if($fn["type"] == "filter") {
+					$twig->addFilter(new \Twig\TwigFilter($fn["name"], $fn["function"]), $fn["options"] ?? []);
+				} else if($fn["type"] == "function") {
+					$twig->addFunction(new \Twig\TwigFunction($fn["name"], $fn["function"]), $fn["options"] ?? []);
+				}
 			}
 		}
 		$constants = array_merge(get_defined_constants(true)["user"], ["_GET" => $_GET, "_POST" => $_POST, "_FILES" => $_FILES, "_COOKIE" => $_COOKIE, "_SESSION" => $_SESSION, "_SERVER" => $_SERVER]);

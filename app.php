@@ -1,7 +1,8 @@
 <?php
+require_once __DIR__."/../autoload.php";
 if(defined("CONFIG")) return;
 
-$_ROOT = realpath(__DIR__."/../../..")."/";
+$_ROOT = realpath(__DIR__."/../..")."/";
 
 define("CONFIG", array_merge(
 	file_exists($_ROOT."config.json") ? json_decode(file_get_contents($_ROOT."config.json"), true) : [],
@@ -17,8 +18,6 @@ define("DOCUMENT_ROOT", CONFIG["DOCUMENT_ROOT"] ?? realpath($_SERVER["DOCUMENT_R
 
 define("WEB_ROOT", CONFIG["WEB_ROOT"] ?? ((substr(ROOT, 0, strlen(DOCUMENT_ROOT)) === DOCUMENT_ROOT) ? substr(ROOT, strlen(DOCUMENT_ROOT)) : "/"));
 
-define("REQUEST", strpos($_SERVER["REQUEST_URI"], "?") === false ? $_SERVER["REQUEST_URI"] : strstr($_SERVER["REQUEST_URI"], "?", true));
-
 date_default_timezone_set(CONFIG["TIMEZONE"] ?? "UTC");
 
 foreach(get_defined_vars() as $_VAR => $_VALUE) {
@@ -26,27 +25,36 @@ foreach(get_defined_vars() as $_VAR => $_VALUE) {
 }
 unset($_VAR, $_VALUE);
 
-foreach(glob(__DIR__."/libs/*.php") as $_LIBRARY) {
-	require_once $_LIBRARY;
-}
-foreach(glob(ROOT."libs/*.php") as $_LIBRARY) {
+define("VIEWS_PATH", ROOT."views/");
+define("CONTROLLERS_PATH", ROOT."controllers/");
+
+foreach(array_merge(glob(__DIR__."/libs/*.php"), glob(ROOT."libs/*.php")) as $_LIBRARY) {
 	require_once $_LIBRARY;
 }
 unset($_LIBRARY);
 
-define("CONTROLLERS_PATH", ROOT."controllers/");
+define("FULL_REQUEST", strpos($_SERVER["REQUEST_URI"], "?") === false ? $_SERVER["REQUEST_URI"] : strstr($_SERVER["REQUEST_URI"], "?", true));
+
+define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, strlen(WEB_ROOT) - 1) : FULL_REQUEST);
+
+$_ACTION = REQUEST;
+foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
+	$_ACTION = require_once($_MIDDLEWARE)($_ACTION);
+}
+define("ACTION", $_ACTION);
+unset($_ACTION);
 
 if(
-	route(REQUEST, CONTROLLERS_PATH, ".php")["main"] === false &&
-	route(REQUEST, VIEWS_PATH, ".twig")["main"] === false
+	route(ACTION, CONTROLLERS_PATH, ".php")["main"] === false &&
+	route(ACTION, VIEWS_PATH, ".twig")["main"] === false
 ) {
 	echo render_twig(false);
 	die;
 }
 
-define("REQUEST_PARAMS", route(REQUEST, CONTROLLERS_PATH, ".php")["params"]);
+define("REQUEST_PARAMS", route(ACTION, CONTROLLERS_PATH, ".php")["params"]);
 
-foreach(array_merge(route(REQUEST, CONTROLLERS_PATH, ".php")["before"], [route(REQUEST, CONTROLLERS_PATH, ".php")["main"]]) as $_CONTROLLER) {
+foreach(array_merge(route(ACTION, CONTROLLERS_PATH, ".php")["before"], [route(ACTION, CONTROLLERS_PATH, ".php")["main"]]) as $_CONTROLLER) {
 	if($_CONTROLLER === false) continue;
 	$_CONTROLLER_RETURN_VALUE = include(CONTROLLERS_PATH.$_CONTROLLER);
 	if(is_array($_CONTROLLER_RETURN_VALUE)) {
@@ -65,5 +73,5 @@ foreach(array_merge(route(REQUEST, CONTROLLERS_PATH, ".php")["before"], [route(R
 }
 unset($_CONTROLLER, $_CONTROLLER_RETURN_VALUE);
 
-echo render_twig(substr(route(REQUEST, ROOT."views/", ".twig")["main"], 0, -strlen(".twig")), get_defined_vars());
+echo render_twig(route(ACTION, ROOT."views/", ".twig")["main"], get_defined_vars());
 die;
