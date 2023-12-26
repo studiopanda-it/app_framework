@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__."/../autoload.php";
+require_once __DIR__."/../../autoload.php";
 if(defined("CONFIG")) return;
 
-$_ROOT = realpath(__DIR__."/../..")."/";
+$_ROOT = realpath(__DIR__."/../../..")."/";
 
 define("CONFIG", array_merge(
 	file_exists($_ROOT."config.json") ? json_decode(file_get_contents($_ROOT."config.json"), true) : [],
@@ -20,11 +20,6 @@ define("WEB_ROOT", CONFIG["WEB_ROOT"] ?? ((substr(ROOT, 0, strlen(DOCUMENT_ROOT)
 
 date_default_timezone_set(CONFIG["TIMEZONE"] ?? "UTC");
 
-foreach(get_defined_vars() as $_VAR => $_VALUE) {
-	unset($$_VAR);
-}
-unset($_VAR, $_VALUE);
-
 define("VIEWS_PATH", ROOT."views/");
 define("CONTROLLERS_PATH", ROOT."controllers/");
 
@@ -39,7 +34,7 @@ define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, st
 
 $_ACTION = REQUEST;
 foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
-	$_ACTION = require_once($_MIDDLEWARE)($_ACTION);
+	$_ACTION = (require_once($_MIDDLEWARE))($_ACTION);
 }
 define("ACTION", $_ACTION);
 unset($_ACTION);
@@ -73,5 +68,5 @@ foreach(array_merge(route(ACTION, CONTROLLERS_PATH, ".php")["before"], [route(AC
 }
 unset($_CONTROLLER, $_CONTROLLER_RETURN_VALUE);
 
-echo render_twig(route(ACTION, ROOT."views/", ".twig")["main"], get_defined_vars());
+echo render_twig(substr(route(ACTION, ROOT."views/", ".twig")["main"], 0, -strlen(".twig")), get_defined_vars());
 die;

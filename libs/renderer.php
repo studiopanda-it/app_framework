@@ -13,7 +13,7 @@ if(!function_exists("render_twig")) {
 				}
 			}
 		}
-		$constants = array_merge(get_defined_constants(true)["user"], ["_GET" => $_GET, "_POST" => $_POST, "_FILES" => $_FILES, "_COOKIE" => $_COOKIE, "_SESSION" => $_SESSION, "_SERVER" => $_SERVER]);
+		$constants = array_merge(get_defined_constants(true)["user"], ["_GET" => $_GET, "_POST" => $_POST, "_FILES" => $_FILES, "_COOKIE" => $_COOKIE, "_SESSION" => $_SESSION ?? [], "_SERVER" => $_SERVER]);
 		if(file_exists(VIEWS_PATH."$view.twig")) {
 			return $twig->render("$view.twig", array_merge($constants, $data));
 		} else {
