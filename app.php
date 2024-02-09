@@ -14,9 +14,9 @@ unset($_ROOT);
 
 define("HOST", CONFIG["HOST"] ?? $_SERVER["HTTP_HOST"]);
 
-define("DOCUMENT_ROOT", CONFIG["DOCUMENT_ROOT"] ?? realpath($_SERVER["DOCUMENT_ROOT"]));
-
-define("WEB_ROOT", CONFIG["WEB_ROOT"] ?? ((substr(ROOT, 0, strlen(DOCUMENT_ROOT)) === DOCUMENT_ROOT) ? substr(ROOT, strlen(DOCUMENT_ROOT)) : "/"));
+$_DOCUMENT_ROOT = CONFIG["DOCUMENT_ROOT"] ?? realpath($_SERVER["DOCUMENT_ROOT"]);
+define("WEB_ROOT", CONFIG["WEB_ROOT"] ?? ((substr(ROOT, 0, strlen($_DOCUMENT_ROOT)) === $_DOCUMENT_ROOT) ? substr(ROOT, strlen($_DOCUMENT_ROOT)) : "/"));
+unset($_DOCUMENT_ROOT);
 
 date_default_timezone_set(CONFIG["TIMEZONE"] ?? "UTC");
 
