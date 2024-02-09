@@ -28,7 +28,7 @@ foreach(array_merge(glob(__DIR__."/libs/*.php"), glob(ROOT."libs/*.php")) as $_L
 }
 unset($_LIBRARY);
 
-define("FULL_REQUEST", strpos($_SERVER["REQUEST_URI"], "?") === false ? $_SERVER["REQUEST_URI"] : strstr($_SERVER["REQUEST_URI"], "?", true));
+define("FULL_REQUEST", rawurldecode(explode("?", $_SERVER["REQUEST_URI"])[0]));
 
 define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, strlen(WEB_ROOT) - 1) : FULL_REQUEST);
 
