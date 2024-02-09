@@ -35,6 +35,15 @@ define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, st
 $_ACTION = REQUEST;
 foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
 	$_ACTION = (require_once($_MIDDLEWARE))($_ACTION);
+	if(is_array($_ACTION)) {
+		header("Content-Type: application/json");
+		echo json_encode($_ACTION, JSON_INVALID_UTF8_SUBSTITUTE);
+		die;
+	}
+	if($_ACTION === false) {
+		echo render_twig(false);
+		die;
+	}
 }
 define("ACTION", $_ACTION);
 unset($_ACTION);
