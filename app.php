@@ -32,21 +32,25 @@ define("FULL_REQUEST", rawurldecode(explode("?", $_SERVER["REQUEST_URI"])[0]));
 
 define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, strlen(WEB_ROOT) - 1) : FULL_REQUEST);
 
-$_ACTION = REQUEST;
+$_REQUEST = REQUEST;
 foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
-	$_ACTION = (require_once($_MIDDLEWARE))($_ACTION);
-	if(is_array($_ACTION)) {
+	$_EXPECTED_ACTION = \StudioPanda\route($_REQUEST, CONTROLLERS_PATH, ".php")["main"];
+	if($_EXPECTED_ACTION === false) {
+		$_EXPECTED_ACTION = \StudioPanda\route($_REQUEST, VIEWS_PATH, ".twig")["main"];
+	}
+	$_REQUEST = (require_once($_MIDDLEWARE))($_REQUEST, $_EXPECTED_ACTION);
+	if(is_array($_REQUEST)) {
 		header("Content-Type: application/json");
-		echo json_encode($_ACTION, JSON_INVALID_UTF8_SUBSTITUTE);
+		echo json_encode($_REQUEST, JSON_INVALID_UTF8_SUBSTITUTE);
 		die;
 	}
-	if($_ACTION === false) {
+	if($_REQUEST === false) {
 		echo \StudioPanda\render_twig(false);
 		die;
 	}
 }
-define("ACTION", $_ACTION);
-unset($_ACTION);
+define("ACTION", $_REQUEST);
+unset($_REQUEST, $_EXPECTED_ACTION);
 
 if(
 	\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["main"] === false &&
