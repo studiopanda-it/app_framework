@@ -1,4 +1,5 @@
 <?php
+namespace StudioPanda;
 if(!function_exists("render_twig")) {
 	function render_twig($view, $data = [], $main = true) {
 		static $twig = null;

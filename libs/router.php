@@ -1,4 +1,5 @@
 <?php
+namespace StudioPanda;
 if(!function_exists("route")) {
 	function route($request, $root, $extension) {
 		static $routes = [];

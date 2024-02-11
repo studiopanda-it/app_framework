@@ -41,7 +41,7 @@ foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
 		die;
 	}
 	if($_ACTION === false) {
-		echo render_twig(false);
+		echo \StudioPanda\render_twig(false);
 		die;
 	}
 }
@@ -49,16 +49,16 @@ define("ACTION", $_ACTION);
 unset($_ACTION);
 
 if(
-	route(ACTION, CONTROLLERS_PATH, ".php")["main"] === false &&
-	route(ACTION, VIEWS_PATH, ".twig")["main"] === false
+	\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["main"] === false &&
+	\StudioPanda\route(ACTION, VIEWS_PATH, ".twig")["main"] === false
 ) {
-	echo render_twig(false);
+	echo \StudioPanda\render_twig(false);
 	die;
 }
 
-define("REQUEST_PARAMS", route(ACTION, CONTROLLERS_PATH, ".php")["params"]);
+define("REQUEST_PARAMS", \StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["params"]);
 
-foreach(array_merge(route(ACTION, CONTROLLERS_PATH, ".php")["before"], [route(ACTION, CONTROLLERS_PATH, ".php")["main"]]) as $_CONTROLLER) {
+foreach(array_merge(\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["before"], [\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["main"]]) as $_CONTROLLER) {
 	if($_CONTROLLER === false) continue;
 	$_CONTROLLER_RETURN_VALUE = include(CONTROLLERS_PATH.$_CONTROLLER);
 	if(is_array($_CONTROLLER_RETURN_VALUE)) {
@@ -67,15 +67,15 @@ foreach(array_merge(route(ACTION, CONTROLLERS_PATH, ".php")["before"], [route(AC
 		die;
 	}
 	if($_CONTROLLER_RETURN_VALUE === false) {
-		echo render_twig(false);
+		echo \StudioPanda\render_twig(false);
 		die;
 	}
 	if(is_string($_CONTROLLER_RETURN_VALUE)) {
-		echo render_twig($_CONTROLLER_RETURN_VALUE, get_defined_vars());
+		echo \StudioPanda\render_twig($_CONTROLLER_RETURN_VALUE, get_defined_vars());
 		die;
 	}
 }
 unset($_CONTROLLER, $_CONTROLLER_RETURN_VALUE);
 
-echo render_twig(substr(route(ACTION, ROOT."views/", ".twig")["main"], 0, -strlen(".twig")), get_defined_vars());
+echo \StudioPanda\render_twig(substr(\StudioPanda\route(ACTION, ROOT."views/", ".twig")["main"], 0, -strlen(".twig")), get_defined_vars());
 die;
