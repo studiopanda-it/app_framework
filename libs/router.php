@@ -65,7 +65,7 @@ if(!function_exists("route")) {
 
 			$routes[$route_id] = [
 				"before" => $before,
-				"main" => $main,
+				"main" => ltrim($main, "/"),
 				"params" => $params
 			];
 		}
