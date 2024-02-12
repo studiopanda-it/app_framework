@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__."/../../autoload.php";
 if(defined("CONFIG")) return;
+
+require_once __DIR__."/../../autoload.php";
 
 $_ROOT = realpath(__DIR__."/../../..")."/";
 
@@ -34,52 +35,41 @@ define("REQUEST", strpos(FULL_REQUEST, WEB_ROOT) === 0 ? substr(FULL_REQUEST, st
 
 $_REQUEST = REQUEST;
 foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
-	$_EXPECTED_ACTION = \StudioPanda\route($_REQUEST, CONTROLLERS_PATH, ".php")["main"];
-	if($_EXPECTED_ACTION === false) {
-		$_EXPECTED_ACTION = \StudioPanda\route($_REQUEST, VIEWS_PATH, ".twig")["main"];
-	}
-	$_REQUEST = (require_once($_MIDDLEWARE))($_REQUEST, $_EXPECTED_ACTION);
+	$_REQUEST = (require_once($_MIDDLEWARE))(
+		$_REQUEST,
+		\StudioPanda\route($_REQUEST, CONTROLLERS_PATH, ".php", true),
+		\StudioPanda\route($_REQUEST, VIEWS_PATH, ".twig", true)
+	);
 	if(is_array($_REQUEST)) {
-		header("Content-Type: application/json");
-		echo json_encode($_REQUEST, JSON_INVALID_UTF8_SUBSTITUTE);
-		die;
+		\StudioPanda\output_json($_REQUEST);
 	}
 	if($_REQUEST === false) {
-		echo \StudioPanda\render_twig(false);
-		die;
+		\StudioPanda\output_twig(false);
 	}
 }
 define("ACTION", $_REQUEST);
 unset($_REQUEST, $_EXPECTED_ACTION);
 
-if(
-	\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["main"] === false &&
-	\StudioPanda\route(ACTION, VIEWS_PATH, ".twig")["main"] === false
-) {
-	echo \StudioPanda\render_twig(false);
-	die;
+define("CONTROLLER", \StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php"));
+define("VIEW", \StudioPanda\route(ACTION, VIEWS_PATH, ".twig", true));
+
+if(CONTROLLER["MAIN"] === false && VIEW === false) {
+	\StudioPanda\output_twig(false);
 }
 
-define("REQUEST_PARAMS", \StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["params"]);
-
-foreach(array_merge(\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["before"], [\StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php")["main"]]) as $_CONTROLLER) {
+foreach([...CONTROLLER["BEFORE"], CONTROLLER["MAIN"]] as $_CONTROLLER) {
 	if($_CONTROLLER === false) continue;
-	$_CONTROLLER_RETURN_VALUE = include(CONTROLLERS_PATH.$_CONTROLLER);
+	$_CONTROLLER_RETURN_VALUE = include(CONTROLLERS_PATH.$_CONTROLLER.".php");
 	if(is_array($_CONTROLLER_RETURN_VALUE)) {
-		header("Content-Type: application/json");
-		echo json_encode($_CONTROLLER_RETURN_VALUE, JSON_INVALID_UTF8_SUBSTITUTE);
-		die;
+		\StudioPanda\output_json($_CONTROLLER_RETURN_VALUE);
 	}
 	if($_CONTROLLER_RETURN_VALUE === false) {
-		echo \StudioPanda\render_twig(false);
-		die;
+		\StudioPanda\output_twig(false);
 	}
 	if(is_string($_CONTROLLER_RETURN_VALUE)) {
-		echo \StudioPanda\render_twig($_CONTROLLER_RETURN_VALUE, get_defined_vars());
-		die;
+		\StudioPanda\output_twig($_CONTROLLER_RETURN_VALUE, get_defined_vars());
 	}
 }
 unset($_CONTROLLER, $_CONTROLLER_RETURN_VALUE);
 
-echo \StudioPanda\render_twig(substr(\StudioPanda\route(ACTION, ROOT."views/", ".twig")["main"], 0, -strlen(".twig")), get_defined_vars());
-die;
+\StudioPanda\output_twig(VIEW, get_defined_vars());
