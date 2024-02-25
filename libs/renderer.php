@@ -8,9 +8,9 @@ function render_twig($view, $data = [], $main = true) {
 		foreach(glob(ROOT."libs/renderer/*.php") as $function) {
 			$fn = require($function);
 			if($fn["type"] == "filter") {
-				$twig->addFilter(new \Twig\TwigFilter($fn["name"], $fn["function"]), $fn["options"] ?? []);
+				$twig->addFilter(new \Twig\TwigFilter($fn["name"], $fn["function"], $fn["options"] ?? []));
 			} else if($fn["type"] == "function") {
-				$twig->addFunction(new \Twig\TwigFunction($fn["name"], $fn["function"]), $fn["options"] ?? []);
+				$twig->addFunction(new \Twig\TwigFunction($fn["name"], $fn["function"], $fn["options"] ?? []));
 			}
 		}
 	}
