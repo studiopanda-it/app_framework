@@ -21,8 +21,8 @@ unset($_DOCUMENT_ROOT);
 
 date_default_timezone_set(CONFIG["TIMEZONE"] ?? "UTC");
 
-define("VIEWS_PATH", ROOT."views/");
-define("CONTROLLERS_PATH", ROOT."controllers/");
+$_VIEWS_PATH = ROOT."views/";
+$_CONTROLLERS_PATH = ROOT."controllers/";
 
 foreach(array_merge(glob(__DIR__."/libs/*.php"), glob(ROOT."libs/*.php")) as $_LIBRARY) {
 	require_once $_LIBRARY;
@@ -37,8 +37,10 @@ $_REQUEST = REQUEST;
 foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
 	$_REQUEST = (require_once($_MIDDLEWARE))(
 		$_REQUEST,
-		\StudioPanda\route($_REQUEST, CONTROLLERS_PATH, ".php", true),
-		\StudioPanda\route($_REQUEST, VIEWS_PATH, ".twig", true)
+		\StudioPanda\route($_REQUEST, $_CONTROLLERS_PATH, ".php", true),
+		\StudioPanda\route($_REQUEST, $_VIEWS_PATH, ".twig", true),
+		$_CONTROLLERS_PATH,
+		$_VIEWS_PATH
 	);
 	if(is_array($_REQUEST)) {
 		\StudioPanda\output_json($_REQUEST);
@@ -48,7 +50,9 @@ foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
 	}
 }
 define("ACTION", $_REQUEST);
-unset($_REQUEST, $_EXPECTED_ACTION);
+define("VIEWS_PATH", $_VIEWS_PATH);
+define("CONTROLLERS_PATH", $_CONTROLLERS_PATH);
+unset($_REQUEST, $_EXPECTED_ACTION, $_VIEWS_PATH, $_CONTROLLERS_PATH);
 
 define("CONTROLLER", \StudioPanda\route(ACTION, CONTROLLERS_PATH, ".php"));
 define("VIEW", \StudioPanda\route(ACTION, VIEWS_PATH, ".twig", true));
