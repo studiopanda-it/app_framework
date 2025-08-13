@@ -46,7 +46,8 @@ foreach(glob(ROOT."middlewares/*.php") as $_MIDDLEWARE) {
 		\StudioPanda\output_json($_REQUEST);
 	}
 	if($_REQUEST === false) {
-		\StudioPanda\output_twig(false);
+		$_REQUEST = false;
+		break;
 	}
 }
 define("ACTION", $_REQUEST);
